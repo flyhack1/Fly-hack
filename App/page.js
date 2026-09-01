@@ -47,10 +47,50 @@ export default function Home() {
   const [date, setDate] = useState("2026-09-12");
   const [searched, setSearched] = useState(false);
 
-  function search() {
+  async function search() {
+  try {
     setSearched(true);
-    setTimeout(() => document.getElementById("results")?.scrollIntoView({ behavior: "smooth" }), 50);
+
+    const originCode = origin.match(/\(([A-Z]{3})\)/)?.[1];
+    const destinationCode = destination.match(/\(([A-Z]{3})\)/)?.[1];
+
+    if (!originCode || !destinationCode || !date) {
+      alert("Introduce origen, destino y fecha correctamente.");
+      return;
+    }
+
+    const response = await fetch("/api/flights", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        origin: originCode,
+        destination: destinationCode,
+        date,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error(data);
+      alert("No se han podido obtener los vuelos.");
+      return;
+    }
+
+    console.log("Vuelos reales recibidos:", data);
+
+    setTimeout(() => {
+      document
+        .getElementById("results")
+        ?.scrollIntoView({ behavior: "smooth" });
+    }, 50);
+  } catch (error) {
+    console.error(error);
+    alert("Ha ocurrido un error al buscar los vuelos.");
   }
+}
 
   return (
     <main>
